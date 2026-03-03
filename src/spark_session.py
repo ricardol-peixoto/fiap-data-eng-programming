@@ -25,21 +25,22 @@ class SparkSessionManager:
 
         spark = (
             SparkSession.builder.appName(f"{spark_config.app_name}")
-            .config("spark.driver.memory",         spark_config.driver_memory)
-            .config("spark.driver.cores",          spark_config.driver_cores)
-            .config("spark.executor.instances",    spark_config.executor_instances)
-            .config("spark.executor.memory",       spark_config.executor_memory)
-            .config("spark.executor.cores",        spark_config.executor_cores)
-            .config("spark.default.parallelism",   spark_config.default_parallelism)
-            .config("spark.ui.port",               spark_config.ui_port)
+            .config("spark.driver.memory",       spark_config.driver_memory)
+            .config("spark.driver.cores",        spark_config.driver_cores)
+            .config("spark.executor.instances",  spark_config.executor_instances)
+            .config("spark.executor.memory",     spark_config.executor_memory)
+            .config("spark.executor.cores",      spark_config.executor_cores)
+            .config("spark.default.parallelism", spark_config.default_parallelism)
+            .config("spark.ui.port",             spark_config.ui_port)
             .getOrCreate())
 
-        logger.info(f"Spark session created:                          {spark.version}")
-        logger.info(f"Spark session configuration driver memory:      {spark_config.driver_memory}")
-        logger.info(f"Spark session configuration driver cores:       {spark_config.driver_cores}")
-        logger.info(f"Spark session configuration executor instances: {spark_config.executor_instances}")
-        logger.info(f"Spark session configuration executor cores:     {spark_config.executor_cores}")
-        logger.info(f"Spark session configuration executor memory:    {spark_config.executor_memory}")
+        logger.info(f"Spark session created    : {spark_config.app_name}")
+        logger.info(f"Spark version            : {spark.version}")
+        logger.info(f"Spark driver memory      : {spark_config.driver_memory}")
+        logger.info(f"Spark driver cores       : {spark_config.driver_cores}")
+        logger.info(f"Spark executor instances : {spark_config.executor_instances}")
+        logger.info(f"Spark executor cores     : {spark_config.executor_cores}")
+        logger.info(f"Spark executor memory    : {spark_config.executor_memory}")
         return spark
 
     @classmethod
