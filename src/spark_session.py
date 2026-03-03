@@ -3,9 +3,7 @@
 from contextlib import contextmanager
 from pyspark.sql import SparkSession
 from src.config import spark_config
-import logging
-
-logger = logging.getLogger(__name__)
+from src.log_settings import logger
 
 
 class SparkSessionManager:
@@ -36,12 +34,12 @@ class SparkSessionManager:
             .config("spark.ui.port",               spark_config.ui_port)
             .getOrCreate())
 
-        logger.info(f"Spark session created:                                {spark.version}")
-        logger.info(f"Spark session configuration driver memory:            {spark_config.driver_memory}")
-        logger.info(f"Spark session configuration driver cores:             {spark_config.driver_cores}")
-        logger.info(f"Spark session configuration executor instances:       {spark_config.executor_instances}")
-        logger.info(f"Spark session configuration executor cores:           {spark_config.executor_cores}")
-        logger.info(f"Spark session configuration executor memory:          {spark_config.executor_memory}")
+        logger.info(f"Spark session created:                          {spark.version}")
+        logger.info(f"Spark session configuration driver memory:      {spark_config.driver_memory}")
+        logger.info(f"Spark session configuration driver cores:       {spark_config.driver_cores}")
+        logger.info(f"Spark session configuration executor instances: {spark_config.executor_instances}")
+        logger.info(f"Spark session configuration executor cores:     {spark_config.executor_cores}")
+        logger.info(f"Spark session configuration executor memory:    {spark_config.executor_memory}")
         return spark
 
     @classmethod

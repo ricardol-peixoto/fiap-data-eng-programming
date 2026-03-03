@@ -6,13 +6,14 @@ authors = [
     {name = "Luiz Adelar Soldatelli Neto, Fátima Beatriz Pinheiro Rodrigues, Jean Felipe dos Santos Ertzogue, Ricardo de Lima Peixoto &Mauricio Acedo de Aquino"}
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "pandas (>=2.3.1,<3.0.0)",
     "pyarrow (>=21.0.0,<22.0.0)",
     "pyspark (==4.0.0)",
     "python-dotenv (>=1.1.1,<2.0.0)",
-    "debugpy (==1.8.16)
+    "debugpy (==1.8.16)",
+    "loguru (>=0.7.3,<0.8.0)"
 ]
 
 
