@@ -12,7 +12,7 @@ dependencies = [
     "pyarrow (>=21.0.0,<22.0.0)",
     "pyspark (==4.0.0)",
     "python-dotenv (>=1.1.1,<2.0.0)",
-    "debugpy (==1.8.16)"
+    "debugpy (==1.8.16)
 ]
 
 
