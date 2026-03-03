@@ -1,0 +1,11 @@
+services:
+  pipeline:
+    build:
+      context: .
+    container_name: data_pipeline
+    ports:
+      - "5678:5678"  # Debug port
+    environment:
+      - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY}
+      - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY}
+      - SPARK_EXECUTOR_CORES=${SPARK_EXECUTOR_CORES}
