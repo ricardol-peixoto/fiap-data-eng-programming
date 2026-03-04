@@ -49,3 +49,7 @@ htmlcov/
 
 # Poetry
 poetry.lock
+
+# Databricks
+.databricks
+databricks.yml
