@@ -10,3 +10,4 @@ class Loader:
     def run(self, df: DataFrame):
         logger.info("todo: implementar loader")
         pass # todo: implementar loader
+

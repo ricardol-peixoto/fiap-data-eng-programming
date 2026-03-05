@@ -58,4 +58,5 @@ def get_spark_session():
     try:
         yield SparkSessionManager.get_session()
     finally:
-        SparkSessionManager.stop_session()
+        pass
+
