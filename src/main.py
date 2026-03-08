@@ -47,5 +47,11 @@ pagamentos = dh.load_pagamentos(path=path_pagamentos_str, compression=compressio
 pagamentos.printSchema()
 pagamentos.show(5, truncate=False)
 
+print("Escrevendo o resultado em parquet")
+path_output = config['paths']['output']
+print(f"Obtido o path de saída: {path_output}")
+dh.write_parquet(df=pagamentos, path=path_output)
+
+
 
 spark.stop()
