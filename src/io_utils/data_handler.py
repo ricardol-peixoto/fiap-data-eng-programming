@@ -55,5 +55,3 @@ class DataHandler:
         """
         df.write.mode("overwrite").parquet(path)
         print(f"Dados salvos com sucesso em: {path}")
-
-

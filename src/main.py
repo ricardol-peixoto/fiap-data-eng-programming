@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from config.settings import carregar_config
 from io_utils.data_handler import DataHandler
+from processing.transformations import Transformation
 
 config = carregar_config()[0]
 
@@ -18,6 +19,7 @@ from session.spark_session import SparkSessionManager
 spark = SparkSessionManager.get_spark_session(app_name=app_name)
 
 data_handler = DataHandler(spark)
+transformer = Transformation()
 
 print("Abrindo o dataframe de pedidos")
 path_pedidos = main_root_dir.parent / config['paths']['pedidos']
@@ -47,6 +49,10 @@ pagamentos = data_handler.load_pagamentos(path=path_pagamentos_str, compression=
 pagamentos.printSchema()
 pagamentos.show(5, truncate=False)
 
+pedidos_pagamentos = transformer.join_pedidos_pagamentos(pedidos, pagamentos)
+relatorio_final = transformer.relatorio(pedidos_pagamentos)
+
+
 # Hora de Gravar o Relatório Final com os pedidos legítimos e que foram recusados.
 print("Escrevendo o resultado em parquet")
 # Nosso grupo usou mais de uma ferramenta para estruturar o Trabalho Final.
@@ -58,12 +64,12 @@ if is_databricks:
     # É necessário criar o volume (fiap-data-eng-programming) e o schema (data-programming-trab-final).
     base_out = "/Volumes/workspace/fiap-data-eng-programming/data-programming-trab-final/"
     print(f"Obtido o path de saída: {base_out}")
-    data_handler.write_parquet(df=pagamentos, path=base_out)
+    data_handler.write_parquet(df=relatorio_final, path=base_out)
 else:
     # Caminho para sua máquina local (pasta do projeto)
     base_out = config['paths']['output']
     print(f"Obtido o path de saída: {base_out}")
-    data_handler.write_parquet(df=pagamentos, path=base_out)
+    data_handler.write_parquet(df=relatorio_final, path=base_out)
 
 
 spark.stop()
