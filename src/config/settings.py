@@ -6,8 +6,11 @@ def carregar_config():
     # Detecta a raiz do projeto (ajuste o número de .parent conforme sua pasta)
     # Se o script estiver em /src/main.py, usamos .parent.parent
     root_dir = Path(os.getcwd())
-    config_path = root_dir.parent / "config" / "settings.yaml"
-
+    if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+        config_path = root_dir.parent / "config" / "settings.yaml"
+    else:
+        config_path = root_dir / "config" / "settings.yaml"
+        
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
     
