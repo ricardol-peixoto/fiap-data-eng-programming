@@ -20,7 +20,11 @@ def main():
     transformer = Transformation()
     
     print("Abrindo o dataframe de pedidos")
-    path_pedidos = main_root_dir.parent / config['paths']['pedidos']
+    if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+        path_pedidos = main_root_dir.parent / config['paths']['pedidos']
+    else:
+        path_pedidos = main_root_dir / config['paths']['pedidos']
+    
     path_pedidos_str = str(path_pedidos)
     print(f"Obtidos o path de pedidos: {path_pedidos_str}")
     print("Carregando parâmetros de leitura das informações de pedidos")
@@ -32,7 +36,11 @@ def main():
     pedidos.show(5, truncate=False)
 
     print("Abrindo o dataframe de pagamentos")
-    path_pagamentos = main_root_dir.parent / config['paths']['pagamentos']
+    if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+        path_pagamentos = main_root_dir.parent / config['paths']['pagamentos']
+    else:
+        path_pagamentos = main_root_dir / config['paths']['pagamentos']
+        
     path_pagamentos_str = str(path_pagamentos)
     print(f"Obtidos o path de pagamentos: {path_pedidos_str}")
     print("Carregando parâmetros de leitura das informações de pedidos")
