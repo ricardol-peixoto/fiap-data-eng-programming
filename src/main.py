@@ -17,7 +17,7 @@ print(f"Obtido o app name: {app_name}")
 from session.spark_session import SparkSessionManager
 spark = SparkSessionManager.get_spark_session(app_name=app_name)
 
-dh = DataHandler(spark)
+data_handler = DataHandler(spark)
 
 print("Abrindo o dataframe de pedidos")
 path_pedidos = main_root_dir.parent / config['paths']['pedidos']
@@ -32,7 +32,7 @@ Obtidos os seguintes parâmetros de pedidos:
 - separator_pedidos: {separator_pedidos}
 """)
 path_pedidos_str = str(path_pedidos)
-pedidos = dh.load_pedidos(path=path_pedidos_str, compression=compression_pedidos, header=header_pedidos, sep=separator_pedidos)
+pedidos = data_handler.load_pedidos(path=path_pedidos_str, compression=compression_pedidos, header=header_pedidos, sep=separator_pedidos)
 pedidos.printSchema()
 pedidos.show(5, truncate=False)
 
@@ -41,17 +41,29 @@ path_pagamentos = main_root_dir.parent / config['paths']['pagamentos']
 compression_pagamentos = config['file_options']['pagamentos_json']['compression']
 print(f"Obtido o path de pagamentos: {path_pagamentos}")
 path_pagamentos_str = str(path_pagamentos)
-pagamentos = dh.load_pagamentos(path=path_pagamentos_str, compression=compression_pagamentos)
+pagamentos = data_handler.load_pagamentos(path=path_pagamentos_str, compression=compression_pagamentos)
 
 
 pagamentos.printSchema()
 pagamentos.show(5, truncate=False)
 
+# Hora de Gravar o Relatório Final com os pedidos legítimos e que foram recusados.
 print("Escrevendo o resultado em parquet")
-path_output = config['paths']['output']
-print(f"Obtido o path de saída: {path_output}")
-dh.write_parquet(df=pagamentos, path=path_output)
+# Nosso grupo usou mais de uma ferramenta para estruturar o Trabalho Final.
+# Se estiver no Databricks, ele utilizará a variável 'DATABRICKS_RUNTIME_VERSION'
+is_databricks = "DATABRICKS_RUNTIME_VERSION" in os.environ
 
+if is_databricks:
+    # Caminho para o "Storage" gratuito do Databricks. 
+    # É necessário criar o volume (fiap-data-eng-programming) e o schema (data-programming-trab-final).
+    base_out = "/Volumes/workspace/fiap-data-eng-programming/data-programming-trab-final/"
+    print(f"Obtido o path de saída: {base_out}")
+    data_handler.write_parquet(df=pagamentos, path=base_out)
+else:
+    # Caminho para sua máquina local (pasta do projeto)
+    base_out = config['paths']['output']
+    print(f"Obtido o path de saída: {base_out}")
+    data_handler.write_parquet(df=pagamentos, path=base_out)
 
 
 spark.stop()

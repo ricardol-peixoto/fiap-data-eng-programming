@@ -1,4 +1,3 @@
-# src/io_utils/data_handler.py
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import (StructType, StructField, StringType, LongType, BooleanType,
                               ArrayType, DateType, FloatType, TimestampType)
@@ -56,3 +55,5 @@ class DataHandler:
         """
         df.write.mode("overwrite").parquet(path)
         print(f"Dados salvos com sucesso em: {path}")
+
+
