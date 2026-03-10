@@ -1,30 +1,26 @@
 from config.settings import carregar_config
 from session.spark_session import SparkSessionManager
-from processing.transformations import Transformation
 from pipeline.pipeline import Pipeline
 import logging
 
+
 def configurar_logging():
-  """Configura o logging para todo o projeto."""
-  logging.basicConfig(
-      level=logging.INFO,
-
-      format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-      datefmt='%Y-%m-%d %H:%M:%S',
-
-      handlers=[
-          logging.FileHandler("fiap-dataprg-trabfinal.log"),
-          logging.StreamHandler()
-      ]
-  )
-  logging.info("Logging configurado.")
+    """Configura o logging para todo o projeto."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[
+            logging.FileHandler("fiap-dataprg-trabfinal.log"),
+            logging.StreamHandler(),
+        ],
+    )
+    logging.info("Logging configurado.")
 
 
 def main():
-    logger = logging.getLogger(__name__)
-
     config = carregar_config()[0]
-    app_name = config['spark']['app_name']
+    app_name = config["spark"]["app_name"]
     print(f"Obtido o app name: {app_name}")
 
     # print("Abrindo a sessao spark")
@@ -39,6 +35,7 @@ def main():
         if spark:
             spark.stop()
             logging.info("Sessão Spark finalizada.")
+
 
 if __name__ == "__main__":
     configurar_logging()
