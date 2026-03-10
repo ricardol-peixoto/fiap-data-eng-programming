@@ -21,7 +21,7 @@ def spark_session():
 # Fixture para criar o Mock de Pagamentos
 @pytest.fixture
 def df_pagamentos_mock(spark_session):
-    data_handler = DataHandler()
+    data_handler = DataHandler(spark_session)
     schema = data_handler._get_schema_pagamentos()
     data = [
         # Exemplo: Pedido P1, Sem fraude, Score 0.99
@@ -49,7 +49,7 @@ def test_extracao_score_fraude(df_pagamentos_mock):
 
 # TESTE 2: Validação de Join (Pedidos x Pagamentos)
 def test_join_pedidos_pagamentos(spark_session, df_pagamentos_mock):
-    data_handler = DataHandler()    
+    data_handler = DataHandler(spark_session)
     schema_pedidos = data_handler._get_schema_pedidos()
     data_pedidos = [("6d864f53-6b6d-4632-9240-1d86fcad4c66", "Prod A", 50.0, 2, None, "SP", 1001)] # Total 100.0
     df_pedidos = spark.createDataFrame(data_pedidos, schema_pedidos)
@@ -62,7 +62,7 @@ def test_join_pedidos_pagamentos(spark_session, df_pagamentos_mock):
 
 # TESTE 3: Regra de Negócio - Status de Pagamento
 def test_filtro_pagamentos_rejeitados(spark_session):
-    data_handler = DataHandler()        
+    data_handler = DataHandler(spark_session)        
     schema = data_handler._get_schema_pagamentos()
     data = [
         Row({"fraude": False, "score": 1.0}, "2023-01-01", "PIX", "P1", True, 50.0), # OK
@@ -77,7 +77,7 @@ def test_filtro_pagamentos_rejeitados(spark_session):
 
 
 def test_logica_filtros_relatorio(spark_session):
-    transformer = Transformation(spark)
+    transformer = Transformation()
 
     data = [
         # Registro Válido (2025, status=False, fraude=False)
