@@ -3,8 +3,7 @@ import os
 from pathlib import Path
 
 def carregar_config():
-    # Detecta a raiz do projeto (ajuste o número de .parent conforme sua pasta)
-    # Se o script estiver em /src/main.py, usamos .parent.parent
+    # Detecta a raiz do projeto (ajuste o número de .parent conforme sua pasta) para tornar o projeto agnóstico à ferramenta.
     root_dir = Path(os.getcwd())
     if "DATABRICKS_RUNTIME_VERSION" in os.environ:
         config_path = root_dir.parent / "config" / "settings.yaml"
@@ -16,5 +15,4 @@ def carregar_config():
     
     return config, root_dir
 
-# --- Uso Prático ---
 config, project_root = carregar_config()

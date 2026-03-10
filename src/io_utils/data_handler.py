@@ -1,6 +1,11 @@
+import logging
+from py4j.protocol import Py4JJavaError
+from pyspark.sql.utils import AnalysisException
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import (StructType, StructField, StringType, LongType, BooleanType,
                               ArrayType, DateType, FloatType, TimestampType)
+
+logger = logging.getLogger(__name__)
 
 class DataHandler:
     """
@@ -38,13 +43,33 @@ class DataHandler:
 
     def load_pagamentos(self, compression: str, path: str) -> DataFrame:
         """Carrega o dataframe de pagamentos a partir de um arquivo JSON."""
-        schema = self._get_schema_pagamentos()
-        return self.spark.read.option("compression", compression).json(path, schema=schema)
+        try:
+            schema = self._get_schema_pagamentos()
+            df = self.spark.read.option("compression", compression).option("mode", "FAILFAST").json(path, schema=schema)
+            if df.isEmpty():
+                logger.warning(f"ATENÇÃO: O arquivo em '{path}' foi lido mas não contém registros.")
+            return df
+        except AnalysisException as e:
+            logger.error(f"Erro ao ler arquivo: {e}")
+            raise e
+        except Py4JJavaError as e:
+            logger.critical(f"Erro Crítico na JVM (possível arquivo corrompido ou erro de memória): {e}")
+            raise e        
 
     def load_pedidos(self, compression: str, path: str, header:bool, sep:str) -> DataFrame:
         """Carrega o dataframe de pedidos a partir de um arquivo CSV."""
-        schema = self._get_schema_pedidos()
-        return self.spark.read.option("compression", compression).csv(path, header=header, schema=schema, sep=sep)
+        try:
+            schema = self._get_schema_pedidos()
+            df = self.spark.read.option("compression", compression).option("mode", "FAILFAST").csv(path, header=header, schema=schema, sep=sep)
+            if df.isEmpty():
+                logger.warning(f"ATENÇÃO: O arquivo em '{path}' foi lido mas não contém registros.")
+            return df
+        except AnalysisException as e:
+            logger.error(f"Erro ao ler arquivo: {e}")
+            raise e
+        except Py4JJavaError as e:
+            logger.critical(f"Erro Crítico na JVM (possível arquivo corrompido ou erro de memória): {e}")
+            raise e        
 
     def write_parquet(self, df: DataFrame, path: str):
         """
@@ -54,4 +79,4 @@ class DataHandler:
         :param path: Caminho de destino.
         """
         df.write.mode("overwrite").parquet(path)
-        print(f"Dados salvos com sucesso em: {path}")
+        logger.info(f"Dados salvos com sucesso em: {path}")

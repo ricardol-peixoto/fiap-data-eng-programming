@@ -1,6 +1,7 @@
-# src/processing/transformations.py
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
+import logging
+logger = logging.getLogger(__name__)
 
 class Transformation:
     """
@@ -21,7 +22,7 @@ class Transformation:
 
     def relatorio(self, df: DataFrame) -> DataFrame:
         try:
-            #logger.info("Iniciando Transformer: filtros de negócio (2025, status=false, fraude=false)")
+            logger.info("Iniciando Transformer: filtros de negócio (2025, status=false, fraude=false)")
 
             df_filtrado = df.filter(
                 (F.year(F.col("DATA_CRIACAO")) == 2025) &
@@ -43,10 +44,10 @@ class Transformation:
                 F.col("data_processamento")
             )
 
-            #logger.info("Transformer: seleção de colunas + ordenação aplicada com sucesso")
+            logger.info("Transformer: seleção de colunas + ordenação aplicada com sucesso")
             
             return df_ordenado            
 
         except Exception as e:
-            #logger.error(f"Erro no Transformer (regras de negócio): {e}", exc_info=True)
+            logger.error(f"Erro no Transformer (regras de negócio): {e}", exc_info=True)
             raise
