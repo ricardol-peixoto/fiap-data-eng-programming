@@ -49,7 +49,7 @@ def test_extracao_score_fraude(df_pagamentos_mock):
 
 # TESTE 2: Validação de Join (Pedidos x Pagamentos)
 def test_join_pedidos_pagamentos(spark, df_pagamentos_mock):
-    data_handler = DataHandler(spark_session)
+    data_handler = DataHandler(spark)
     schema_pedidos = data_handler._get_schema_pedidos()
     data_pedidos = [("6d864f53-6b6d-4632-9240-1d86fcad4c66", "Prod A", 50.0, 2, None, "SP", 1001)] # Total 100.0
     df_pedidos = spark.createDataFrame(data_pedidos, schema_pedidos)
@@ -70,12 +70,12 @@ def test_filtro_pagamentos_rejeitados(spark):
     ]
     df_raw = spark.createDataFrame(data, schema)
     
-    df_filtrado = df_raw.filter(col("status") == True)
+    df_filtrado = df_raw.filter(F.col("status") == True)
     
     assert df_filtrado.count() == 1
     assert df_filtrado.collect()[0]["id_pedido"] == "P1"
 
-
+# TESTE 4: Regra de Negócio - Validações do Relatório Final
 def test_logica_filtros_relatorio(spark):
     transformer = Transformation()
 
@@ -105,4 +105,4 @@ def test_logica_filtros_relatorio(spark):
     
     # Asserts
     assert df_resultado.count() == 1, "O filtro deveria ter retornado apenas 1 registro"
-    assert df_resultado.collect()[0]["ID_PEDIDO"] == "P1"
+    assert df_resultado.collect()[0]["id_pedido"] == "P1"
