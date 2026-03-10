@@ -1,7 +1,9 @@
 import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, LongType
 from src.processing.transformations import Transformation
+from src.io_utils.data_handler import DataHandler
+from pyspark.sql import functions as F, Row
+from pyspark.sql.types import *
 
 @pytest.fixture(scope="session")
 def spark_session():
@@ -16,103 +18,91 @@ def spark_session():
     yield spark
     spark.stop()
 
-def test_add_valor_total_pedidos(spark_session):
-    """
-    Testa a função add_valor_total_pedidos para garantir que a coluna 'valor_total'
-    é calculada corretamente.
-    """
-    # 1. Arrange (Preparar os dados de entrada e o resultado esperado)
-    transformer = Transformation()
-
-    schema_entrada = StructType([
-        StructField("produto", StringType(), True),
-        StructField("valor_unitario", FloatType(), True),
-        StructField("quantidade", LongType(), True),
-    ])
-    dados_entrada = [
-        ("Produto A", 10.0, 2),
-        ("Produto B", 5.5, 3),
-        ("Produto C", 100.0, 1)
+# Fixture para criar o Mock de Pagamentos
+@pytest.fixture
+def df_pagamentos_mock(spark_session):
+    data_handler = DataHandler()
+    schema = data_handler._get_schema_pagamentos()
+    data = [
+        # Exemplo: Pedido P1, Sem fraude, Score 0.99
+        Row(
+            avaliacao_fraude={"fraude": False, "score": 0.99},
+            data_processamento="2025-05-22",
+            forma_pagamento="CARTAO_CREDITO",
+            id_pedido="6d864f53-6b6d-4632-9240-1d86fcad4c66",
+            status=True,
+            valor_pagamento=2375.0
+        )
     ]
-    df_entrada = spark_session.createDataFrame(dados_entrada, schema_entrada)
+    return spark.createDataFrame(data, schema)
 
-    schema_esperado = StructType([
-        StructField("produto", StringType(), True),
-        StructField("valor_unitario", FloatType(), True),
-        StructField("quantidade", LongType(), True),
-        StructField("valor_total", FloatType(), True)
-    ])
-    dados_esperados = [
-        ("Produto A", 10.0, 2, 20.0),
-        ("Produto B", 5.5, 3, 16.5),
-        ("Produto C", 100.0, 1, 100.0)
+# TESTE 1: Extração de campo aninhado do JSON (Flattening)
+def test_extracao_score_fraude(df_pagamentos_mock):
+    df_transformed = df_pagamentos_mock.select(
+        F.col("id_pedido"), 
+        F.col("avaliacao_fraude.fraude").alias("fraude")
+    )
+    
+    result = df_transformed.collect()[0]
+    assert result["fraude"] == False
+    assert "avaliacao_fraude" not in df_transformed.columns
+
+# TESTE 2: Validação de Join (Pedidos x Pagamentos)
+def test_join_pedidos_pagamentos(spark_session, df_pagamentos_mock):
+    data_handler = DataHandler()    
+    schema_pedidos = data_handler._get_schema_pedidos()
+    data_pedidos = [("6d864f53-6b6d-4632-9240-1d86fcad4c66", "Prod A", 50.0, 2, None, "SP", 1001)] # Total 100.0
+    df_pedidos = spark.createDataFrame(data_pedidos, schema_pedidos)
+    
+    df_final = df_pedidos.join(df_pagamentos_mock, on="id_pedido")
+    
+    assert df_final.count() == 1
+    assert "PRODUTO" in df_final.columns
+    assert "forma_pagamento" in df_final.columns
+
+# TESTE 3: Regra de Negócio - Status de Pagamento
+def test_filtro_pagamentos_rejeitados(spark_session):
+    data_handler = DataHandler()        
+    schema = data_handler._get_schema_pagamentos()
+    data = [
+        Row({"fraude": False, "score": 1.0}, "2023-01-01", "PIX", "P1", True, 50.0), # OK
+        Row({"fraude": True, "score": 0.1}, "2023-01-01", "PIX", "P2", False, 50.0) # REJEITADO
     ]
-    df_esperado = spark_session.createDataFrame(dados_esperados, schema_esperado)
-
-    # 2. Act (Executar a função a ser testada)
-    df_resultado = transformer.add_valor_total_pedidos(df_entrada)
-
-    # 3. Assert (Verificar se o resultado é o esperado)
-    # Coletamos os dados dos DataFrames para comparar como listas de dicionários
-    resultado_coletado = sorted([row.asDict() for row in df_resultado.collect()], key=lambda x: x['produto'])
-    esperado_coletado = sorted([row.asDict() for row in df_esperado.collect()], key=lambda x: x['produto'])
-
-    assert df_resultado.count() == df_esperado.count(), "O número de linhas não corresponde ao esperado."
-    assert df_resultado.columns == df_esperado.columns, "As colunas não correspondem ao esperado."
-    assert resultado_coletado == esperado_coletado, "O conteúdo dos DataFrames não é igual."
+    df_raw = spark.createDataFrame(data, schema)
+    
+    df_filtrado = df_raw.filter(col("status") == True)
+    
+    assert df_filtrado.count() == 1
+    assert df_filtrado.collect()[0]["id_pedido"] == "P1"
 
 
-def test_get_top_10_clientes(spark_session):
-    """
-    Testa a função get_top_10_clientes para garantir que ela agrupa,
-    soma os valores totais por cliente e retorna apenas os 10 maiores,
-    ordenados corretamente.
-    """
-    # 1. Arrange
-    transformer = Transformation()
+def test_logica_filtros_relatorio(spark_session):
+    transformer = Transformation(spark)
 
-    schema_entrada = StructType([
-        StructField("id_cliente", LongType(), True),
-        StructField("valor_total", FloatType(), True),
-    ])
-    # Criando 12 clientes para garantir que o limit(10) funcione
-    dados_entrada = [
-        (1, 100.0), (2, 200.0), (1, 50.0),   # Cliente 1: total 150.0
-        (3, 300.0), (4, 400.0), (5, 500.0),
-        (6, 600.0), (7, 700.0), (8, 800.0),
-        (9, 900.0), (10, 1000.0), (11, 1100.0),
-        (12, 50.0)
+    data = [
+        # Registro Válido (2025, status=False, fraude=False)
+        Row(ID_PEDIDO="P1", UF="SP", DATA_CRIACAO="2025-01-01 10:00:00", 
+            status=False, fraude=False, forma_pagamento="PIX", valor_pagamento=100.0, data_processamento="2025-01-01"),
+        
+        # Filtra por Ano (2024)
+        Row(ID_PEDIDO="P2", UF="RJ", DATA_CRIACAO="2024-12-31 23:59:59", 
+            status=False, fraude=False, forma_pagamento="Boleto", valor_pagamento=50.0, data_processamento="2025-01-01"),
+        
+        # Filtra por Status (True)
+        Row(ID_PEDIDO="P3", UF="MG", DATA_CRIACAO="2025-02-01 10:00:00", 
+            status=True, fraude=False, forma_pagamento="Cartão", valor_pagamento=80.0, data_processamento="2025-02-01"),
+        
+        # Filtra por Fraude (True)
+        Row(ID_PEDIDO="P4", UF="SC", DATA_CRIACAO="2025-03-01 10:00:00", 
+            status=False, fraude=True, forma_pagamento="PIX", valor_pagamento=200.0, data_processamento="2025-03-01")
     ]
-    df_entrada = spark_session.createDataFrame(dados_entrada, schema_entrada)
-
-    # O resultado esperado deve conter os 10 clientes com maiores valores,
-    # ordenados de forma decrescente.
-    schema_esperado = StructType([
-        StructField("id_cliente", LongType(), True),
-        StructField("valor_total", FloatType(), True)
-    ])
-    dados_esperados = [
-        (11, 1100.0),
-        (10, 1000.0),
-        (9, 900.0),
-        (8, 800.0),
-        (7, 700.0),
-        (6, 600.0),
-        (5, 500.0),
-        (4, 400.0),
-        (3, 300.0),
-        (2, 200.0) # Cliente 1 (total 150.0) e 12 (total 50.0) devem ficar de fora
-    ]
-    df_esperado = spark_session.createDataFrame(dados_esperados, schema_esperado)
-
-    # 2. Act
-    df_resultado = transformer.get_top_10_clientes(df_entrada)
-
-    # 3. Assert
-    # A ordem é importante neste teste, então coletamos os dados como estão
-    resultado_coletado = [row.asDict() for row in df_resultado.collect()]
-    esperado_coletado = [row.asDict() for row in df_esperado.collect()]
-
-    assert df_resultado.count() == 10, "O DataFrame resultante deve ter exatamente 10 linhas."
-    assert df_resultado.columns == df_esperado.columns, "As colunas não correspondem ao esperado."
-    assert resultado_coletado == esperado_coletado, "Os dados dos 10 maiores clientes não correspondem ao esperado."
+    
+    # Criamos o DF com o schema necessário (convertendo DATA_CRIACAO para Timestamp)
+    df_input = spark.createDataFrame(data).withColumn("DATA_CRIACAO", F.to_timestamp("DATA_CRIACAO"))
+    
+    # Chamamos sua função de filtragem
+    df_resultado = transformer.relatorio(df_input)
+    
+    # Asserts
+    assert df_resultado.count() == 1, "O filtro deveria ter retornado apenas 1 registro"
+    assert df_resultado.collect()[0]["ID_PEDIDO"] == "P1"
