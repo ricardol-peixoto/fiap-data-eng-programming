@@ -6,7 +6,7 @@ from pyspark.sql import functions as F, Row
 from pyspark.sql.types import *
 
 @pytest.fixture(scope="session")
-def spark_session():
+def spark():
     """
     Cria uma SparkSession para ser usada em todos os testes.
     A sessão é finalizada automaticamente ao final da execução dos testes.
@@ -20,8 +20,8 @@ def spark_session():
 
 # Fixture para criar o Mock de Pagamentos
 @pytest.fixture
-def df_pagamentos_mock(spark_session):
-    data_handler = DataHandler(spark_session)
+def df_pagamentos_mock(spark):
+    data_handler = DataHandler(spark)
     schema = data_handler._get_schema_pagamentos()
     data = [
         # Exemplo: Pedido P1, Sem fraude, Score 0.99
@@ -48,7 +48,7 @@ def test_extracao_score_fraude(df_pagamentos_mock):
     assert "avaliacao_fraude" not in df_transformed.columns
 
 # TESTE 2: Validação de Join (Pedidos x Pagamentos)
-def test_join_pedidos_pagamentos(spark_session, df_pagamentos_mock):
+def test_join_pedidos_pagamentos(spark, df_pagamentos_mock):
     data_handler = DataHandler(spark_session)
     schema_pedidos = data_handler._get_schema_pedidos()
     data_pedidos = [("6d864f53-6b6d-4632-9240-1d86fcad4c66", "Prod A", 50.0, 2, None, "SP", 1001)] # Total 100.0
@@ -61,8 +61,8 @@ def test_join_pedidos_pagamentos(spark_session, df_pagamentos_mock):
     assert "forma_pagamento" in df_final.columns
 
 # TESTE 3: Regra de Negócio - Status de Pagamento
-def test_filtro_pagamentos_rejeitados(spark_session):
-    data_handler = DataHandler(spark_session)        
+def test_filtro_pagamentos_rejeitados(spark):
+    data_handler = DataHandler(spark)        
     schema = data_handler._get_schema_pagamentos()
     data = [
         Row({"fraude": False, "score": 1.0}, "2023-01-01", "PIX", "P1", True, 50.0), # OK
@@ -76,7 +76,7 @@ def test_filtro_pagamentos_rejeitados(spark_session):
     assert df_filtrado.collect()[0]["id_pedido"] == "P1"
 
 
-def test_logica_filtros_relatorio(spark_session):
+def test_logica_filtros_relatorio(spark):
     transformer = Transformation()
 
     data = [
