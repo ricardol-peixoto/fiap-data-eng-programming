@@ -1,0 +1,18 @@
+spark:
+  app_name: "trab-final-rel-pedidos"
+
+# Aqui definimos caminhos relativos à raiz do projeto
+paths:
+  pagamentos: "data/input/dataset-json-pagamentos/data/pagamentos/"
+  pedidos: "data/input/datasets-csv-pedidos/data/pedidos/"
+  output: "data/output/pedidos_legit_recusados/"
+
+# Configurações de Processamento
+file_options:
+  pagamentos_json:
+    compression: "gzip"
+  pedidos_csv:
+    compression: "gzip"
+    header: True
+    sep: ";"
+    
