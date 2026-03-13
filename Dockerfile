@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip && \
 
 # Create working directory
 RUN mkdir -p /opt/spark/app
-WORKDIR /opt/spark/app
+WORKDIR /opt/spark/app/src
 
 # Copy your files
 COPY . .
