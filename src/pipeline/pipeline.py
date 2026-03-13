@@ -33,7 +33,7 @@ class Pipeline:
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
             path_pedidos = main_root_dir.parent / config["paths"]["pedidos"]
         else:
-            path_pedidos = main_root_dir / config["paths"]["pedidos"]
+            path_pedidos = main_root_dir.parent / config["paths"]["pedidos"]
 
         path_pedidos_str = str(path_pedidos)
         logger.info(f"Obtidos o path de pedidos: {path_pedidos_str}")
@@ -54,7 +54,7 @@ class Pipeline:
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
             path_pagamentos = main_root_dir.parent / config["paths"]["pagamentos"]
         else:
-            path_pagamentos = main_root_dir / config["paths"]["pagamentos"]
+            path_pagamentos = main_root_dir.parent / config["paths"]["pagamentos"]
 
         path_pagamentos_str = str(path_pagamentos)
         logger.info(f"Obtidos o path de pagamentos: {path_pedidos_str}")
