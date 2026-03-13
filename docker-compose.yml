@@ -13,3 +13,4 @@ services:
       - ./data:/opt/spark/app/data
       - ./src:/opt/spark/app/src
       - ./logs:/opt/spark/app/logs
+      - ./config:/opt/spark/app/config

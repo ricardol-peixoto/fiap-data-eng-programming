@@ -21,12 +21,9 @@ def configurar_logging():
 def main():
     config = carregar_config()[0]
     app_name = config["spark"]["app_name"]
-    print(f"Obtido o app name: {app_name}")
-
-    # print("Abrindo a sessao spark")
     spark = None
     try:
-        spark = SparkSessionManager.get_spark_session(app_name=app_name)
+        spark = SparkSessionManager.get_spark_session(app_name=app_name, config=config)
         pipeline = Pipeline(spark)
         pipeline.run(config=config)
     except Exception as e:

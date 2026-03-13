@@ -1,5 +1,11 @@
 spark:
   app_name: "trab-final-rel-pedidos"
+  driver_memory: "2G"
+  driver_cores: "2"
+  executor_instances: "2"
+  executor_memory: "2G"
+  executor_cores: "2"
+  default_parallelism: "4"
 
 # Aqui definimos caminhos relativos à raiz do projeto
 paths:
