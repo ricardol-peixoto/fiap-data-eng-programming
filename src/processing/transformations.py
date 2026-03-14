@@ -42,11 +42,11 @@ class Transformation:
                 F.col("UF").alias("uf"),
                 F.col("forma_pagamento").alias("forma_pagamento"),
                 F.col("valor_pagamento").alias("valor_pagamento"),
-                F.col("data_processamento").alias("data_processamento"),
+                F.col("DATA_CRIACAO").alias("data_pedido"),
             )
 
             df_ordenado = df_relatorio.orderBy(
-                F.col("uf"), F.col("forma_pagamento"), F.col("data_processamento")
+                F.col("uf"), F.col("forma_pagamento"), F.col("data_pedido")
             )
 
             logger.info(
