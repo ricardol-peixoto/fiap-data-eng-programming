@@ -14,55 +14,107 @@
 | Mauricio Acedo de Aquino | RM 367519 |​
 | Ricardo de Lima Peixoto | RM 369113 |
 ---
-
+ 
 ## 1. Descrição do Projeto
-Este projeto consiste no desenvolvimento de um pipeline de ETL (Extract, Transform, Load) utilizando **PySpark**. O objetivo principal é demonstrar a aplicação de conceitos de programação voltada para engenharia de dados, incluindo a manipulação de grandes volumes de dados, estruturação de código modular e aplicação de testes automatizados.
-
-O pipeline realiza a leitura de fontes de dados brutas, aplica transformações de limpeza e agregação, e persiste os resultados de forma estruturada.
-
-O objetivo é elaborar um relatório de pedidos de venda que tiveram pagamentos recusados e que na avaliação de fraude foram classificados como legítimos.
-
+ 
+Este projeto implementa um pipeline de **ETL (Extract, Transform, Load)** utilizando **Apache PySpark**, desenvolvido como Trabalho Final da disciplina de Data Engineering Programming.
+ 
+O código é organizado seguindo boas práticas de engenharia de software:
+ 
+- **Orientação a Objetos** — todos os componentes encapsulados em classes
+- **Injeção de Dependências** — `main.py` como *Aggregation Root*
+- **Configurações Centralizadas** — parâmetros em `config/settings.yaml`
+- **Schemas Explícitos** — nenhum DataFrame utiliza inferência de schema
+- **Logging Estruturado** — rastreabilidade completa das etapas
+- **Tratamento de Erros** — `try/except` com logging em toda a lógica de negócio
+- **Testes Unitários** — suite com `pytest` cobrindo as regras de negócio
+- **Agnóstico à Plataforma** — roda em Docker local ou Databricks sem mudanças no código
+ 
 ---
-
-## 2. Estrutura do Repositório
-A organização do projeto segue as boas práticas de desenvolvimento:
-
-* `src/`: Contém os scripts principais e a lógica de processamento Spark.
-* `config/`: Arquivos de configuração do ambiente e parâmetros do job.
-* `data/input/`: Diretório destinado aos arquivos de origem (raw data).
-* `tests/`: Scripts de testes unitários e validações.
-* `Dockerfile` & `docker-compose.yml`: Configurações para orquestração do ambiente via containers.
-* `requirements.txt`: Dependências das bibliotecas Python utilizadas.
-
-### 2.1. Detalhamento dos pacotes na pasta `src/`:
-
+ 
+## 2. Arquitetura e Estrutura do Repositório
+ 
+### Fluxo do Pipeline
+ 
 ```
-.
-└── src/
-    ├── __init__.py
-    ├── config/
-    │   ├── __init__.py
-    │   └── settings.py         # <-- Configurações obtidas do arquivo YAML necessárias
-    ├── session/
-    │   ├── __init__.py
-    │   └── spark_session.py    # <-- Classe para gerenciar a sessão Spark
-    ├── io_utils/
-    │   ├── __init__.py
-    │   └── data_handler.py     # <-- Classe para ler e escrever dados (I/O)
-    ├── processing/
-    │   ├── __init__.py
-    │   └── transformations.py  # <-- Classe para a lógica de negócio
-    └── main.py                 # <-- Orquestrador principal da aplicação
+main.py  (Aggregation Root)
+   │
+   ├── carregar_config()          ← config/settings.yaml
+   ├── SparkSessionManager        ← cria SparkSession
+   └── Pipeline.run()
+         │
+         ├── DataHandler.load_pedidos()     ← CSV (.gz)
+         ├── DataHandler.load_pagamentos()  ← JSON (.gz)
+         ├── Transformation.join_pedidos_pagamentos()
+         ├── Transformation.relatorio()     ← filtros + ordenação
+         └── DataHandler.write_parquet()    ← data/output/
 ```
-
+ 
+### Estrutura de Diretórios
+ 
+```
+fiap-data-eng-programming/
+│
+├── config/
+│   └── settings.yaml               # Parâmetros centralizados (Spark, paths, I/O)
+│
+├── data/
+│   ├── input/
+│   │   ├── dataset-json-pagamentos/
+│   │   │   └── data/pagamentos/    # Arquivos JSON (.gz) de pagamentos
+│   │   └── datasets-csv-pedidos/
+│   │       └── data/pedidos/       # Arquivos CSV (.gz) de pedidos
+│   └── output/
+│       └── pedidos_legit_recusados/ # Parquet gerado pelo pipeline
+│
+├── src/
+│   ├── __init__.py
+│   ├── main.py                     # Aggregation Root — ponto de entrada
+│   ├── config/
+│   │   ├── __init__.py
+│   │   └── settings.py             # Classe de configuração (lê o YAML)
+│   ├── session/
+│   │   ├── __init__.py
+│   │   └── spark_session.py        # SparkSessionManager
+│   ├── io_utils/
+│   │   ├── __init__.py
+│   │   └── data_handler.py         # DataHandler (leitura CSV/JSON + escrita Parquet)
+│   ├── processing/
+│   │   ├── __init__.py
+│   │   └── transformations.py      # Transformation (join + filtros + ordenação)
+│   └── pipeline/
+│       ├── __init__.py
+│       └── pipeline.py             # Pipeline (orquestrador)
+│
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py                 # Configuração do PYTHONPATH para o pytest
+│   └── test_transformations.py     # Testes unitários com pytest
+│
+├── Dockerfile
+├── docker-compose.yml
+├── pyproject.toml
+├── requirements.txt
+├── MANIFEST.in
+└── README.md
+```
+ 
 ---
-
+ 
 ## 3. Tecnologias Utilizadas
-* **Python 3.x**: Linguagem principal.
-* **Apache Spark (PySpark)**: Engine de processamento distribuído.
-
+ 
+| Tecnologia | Versão | Finalidade |
+|---|---|---|
+| Python | ≥ 3.12 | Linguagem principal |
+| Apache Spark / PySpark | 4.0.0 | Processamento distribuído |
+| PyYAML | 6.0.3 | Leitura de configurações |
+| python-dotenv | ≥ 1.1.1 | Variáveis de ambiente |
+| pyarrow | ≥ 21.0.0 | Suporte ao formato Parquet |
+| pytest | 8.4.1 | Testes unitários |
+| Docker / docker-compose | qualquer | Containerização |
+| Databricks Runtime | qualquer | Execução em nuvem (alternativa) |
+ 
 ---
-
 ## 4. Plataformas de execução
 O projeto foi pensado para ser agnóstico à plataforma escolhida.
 
@@ -85,25 +137,63 @@ Para rodar o projeto em um ambiente isolado, siga os passos abaixo:
     python3 main.py
     ```
 
-## 4.2. Instruções de Execução `Databricks`
-
-Para rodar o projeto no Databricks, siga os passos abaixo:
-
-1.  **Selecione a opção ` Catalog `**
-2.  **Clique no Botão ` CREATE `, e depois selecione a opção ` Create a Volume `**
-3.  **Na janela CREATE A NEW VOLUME, preencha o campo VOLUME NAME* com:**
-    ```bash
-    fiap-data-eng-programming
-    ```
-4.  **Nos campos da opção - Choose catalog and schema - selecione a opção ` workspace ` como Catalog**
-    **e em seguida, ao clicar na opção Select a Schema, selecione a opção ` + CREATE A NEW SCHEMA `**
-    **irá surgir uma nova janela e defina o valor abaixo no campo ` SCHEMA NAME `:**
-    ```bash
-    data-programming-trab-final
-    ```
-5.  **Localize o arquivo `main.py ` e execute o pipeline**
-
+### 4.2. Para execução via Docker (recomendado)
+ 
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) ≥ 24.x
+- [docker-compose](https://docs.docker.com/compose/) ≥ 2.x
+- Mínimo **4 GB de RAM** disponíveis para o container
+ 
+### 4.3. Para execução local (sem Docker)
+ 
+- Python ≥ 3.12
+- Java JDK 11 ou 17 (obrigatório para o Spark)
+- `JAVA_HOME` configurado corretamente
+ 
+```bash
+# Verificar Java
+java -version
+ 
+# Verificar JAVA_HOME
+echo $JAVA_HOME
+```
+ 
+### 4.4. Para execução no Databricks
+ 
+- Conta ativa no [Databricks Community Edition](https://community.cloud.databricks.com/) ou workspace corporativo
+- Cluster com Databricks Runtime ≥ 13.x (inclui Spark e Python)
+ 
 ---
-
+ 
+## 5. Configuração do Ambiente
+ 
+O arquivo `config/settings.yaml` centraliza todos os parâmetros da aplicação. **Não é necessário editar o código para mudar caminhos ou recursos Spark** — basta ajustar este arquivo.
+ 
+```yaml
+spark:
+  app_name: "trab-final-rel-pedidos"
+  driver_memory: "2G"
+  driver_cores: "2"
+  executor_instances: "2"
+  executor_memory: "2G"
+  executor_cores: "2"
+  default_parallelism: "4"
+ 
+paths:
+  pagamentos: "data/input/dataset-json-pagamentos/data/pagamentos/"
+  pedidos:    "data/input/datasets-csv-pedidos/data/pedidos/"
+  output:     "data/output/pedidos_legit_recusados/"
+ 
+file_options:
+  pagamentos_json:
+    compression: "gzip"
+  pedidos_csv:
+    compression: "gzip"
+    header: true
+    sep: ";"
+```
+ 
+> **Atenção:** os caminhos em `paths` são relativos à **raiz do projeto** (diretório pai de `src/`). O pipeline resolve os caminhos absolutos automaticamente via `pathlib.Path`.
+ 
+---
 ## 6. Conclusão
 O projeto cumpre os requisitos acadêmicos da disciplina, aplicando técnicas de processamento de dados escaláveis e garantindo a reprodutibilidade do código de maneira agnóstica à ferramenta escolhida pelo usuário.
