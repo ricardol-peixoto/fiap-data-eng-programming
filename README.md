@@ -4,8 +4,13 @@
 
 
 **Prof.:** Marcelo Barbosa  
-**Alunos:** Beatriz Pinheiro Rodrigues, Jean Ertzogue, Luiz Soldatelli, Ricardo Peixoto e Mauricio Aquino
 **Turma:** 8ABDR
+**Alunos:**
+Fátima Beatriz Pinheiro Rodrigues - RM368775​
+Jean Felipe dos Santos Ertzogue - RM366352​
+Luiz Adelar Soldatelli Neto - RM367692​
+Mauricio Acedo de Aquino - RM367519​
+Ricardo de Lima Peixoto - RM369113
 
 ---
 
