@@ -8,11 +8,11 @@
 **Alunos:**
 | Nome | RM |
 |---|---|
-| Beatriz Pinheiro Rodrigues | RM XXXXXX |
-| Jean Felipe dos Santos Ertzogue | RM XXXXXX |
-| Luiz Adelar Soldatelli Neto | RM XXXXXX |
-| Mauricio Acedo de Aquino | RM XXXXXX |
-| Ricardo de Lima Peixoto | RM XXXXXX |
+| Fátima Beatriz Pinheiro Rodrigues | RM 368775 |​
+| Jean Felipe dos Santos Ertzogue | RM 366352 |​
+| Luiz Adelar Soldatelli Neto | RM 367692 |​
+| Mauricio Acedo de Aquino | RM 367519 |​
+| Ricardo de Lima Peixoto | RM 369113 |
 ---
 
 ## 1. Descrição do Projeto
