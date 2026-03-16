@@ -161,7 +161,22 @@ echo $JAVA_HOME
  
 - Conta ativa no [Databricks Community Edition](https://community.cloud.databricks.com/) ou workspace corporativo
 - Cluster com Databricks Runtime ≥ 13.x (inclui Spark e Python)
- 
+
+Necessário configurar `Volume` e `Schema` pre-definidos conforme passos abaixo:
+- Selecione a opção ` Catalog `
+- Clique no Botão ` CREATE `, e depois selecione a opção ` Create a Volume `
+- Na janela CREATE A NEW VOLUME, preencha o campo VOLUME NAME* com:
+    ```bash
+    fiap-data-eng-programming
+    ```
+- Nos campos da opção - Choose catalog and schema - selecione a opção ` workspace ` como Catalog
+  e em seguida, ao clicar na opção Select a Schema, selecione a opção ` + CREATE A NEW SCHEMA `
+  irá surgir uma nova janela e defina o valor abaixo no campo ` SCHEMA NAME `:
+    ```bash
+    data-programming-trab-final
+    ```
+- Para rodar o projeto no Databricks, localize o arquivo `main.py ` e execute o pipeline
+
 ---
  
 ## 5. Configuração do Ambiente
